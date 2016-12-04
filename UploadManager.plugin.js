@@ -11,12 +11,19 @@
 (function()
 {
 
-	var settings = {},
-		dropBox = {},	
-		uploadListItems = [],
-		fileInput = {},
-		chooseButton = {},
-		container = {};
+	var settings = {};
+	
+	var	dropBox = {};	
+	
+	var dropBoxTitle = {};
+
+	var	uploadListItems = [];
+	
+	var	fileInput = {};
+	
+	var	chooseButton = {};
+	
+	var container = {};
 
 	// The constructor
 	this.UploadManager = function() {
@@ -54,6 +61,7 @@
 			dropBox = createDropBox();
 
 			container.appendChild(dropBox);
+			dropBox.addEventListener('drop', listFiles);
 		}
 
 		fileInput = createFileInput();
@@ -61,7 +69,6 @@
 		
 		chooseButton.addEventListener('click', openFilesDialogBox);
 		fileInput.addEventListener('change', listFiles);
-		dropBox.addEventListener('drop', listFiles);
 
 		container.appendChild(fileInput);
 		container.appendChild(chooseButton);
@@ -91,16 +98,17 @@
 		dropBox.className = 'drop-box';
 		dropBox.style.width = settings.containerWidth+'px';
 		dropBox.style.height = settings.containerHeight+'px';
-		dropBox.style.border = '1px dotted #a6a6a6';
+		dropBox.style.border = '2px dotted #a6a6a6';
 		dropBox.style.textAlign = 'center';
 		dropBox.style.margin = '0 auto';
 
-		var span = document.createElement('span');
-		span.innerHTML = settings.dropBoxTitle;
-		span.style.lineHeight = settings.containerHeight+'px';
-		span.style.fontSize = '1.6em';
+		dropBoxTitle = document.createElement('span');
+		dropBoxTitle.innerHTML = settings.dropBoxTitle;
+		dropBoxTitle.style.lineHeight = settings.containerHeight+'px';
+		dropBoxTitle.style.fontSize = '1.6em';
+		dropBoxTitle.style.color = '#a6a6a6';
 
-		dropBox.appendChild(span);
+		dropBox.appendChild(dropBoxTitle);
 		
 		dropBox.ondragover = changeDropBoxStyle;
 		dropBox.ondragleave = changeDropBoxStyle;
@@ -170,6 +178,7 @@
 		else if(event.type == 'drop') {
 
 			dropBox.style.border = '1px dotted #a6a6a6';
+			dropBoxTitle.style.color = '#a6a6a6';
 			files = event.dataTransfer.files;
 		}
 
@@ -207,16 +216,40 @@
 							});
 
 		list.style.width = '98%';
-		list.style.height = '35px';
+		list.style.height = '40px';
 		list.style.lineHeight = '35px';
 		list.style.padding = '6px 6px';
 		list.style.border = '1px solid #000000';
 		list.style.listStyleType = 'none';
 		list.style.marginTop = '5px';
 		list.style.display = 'inline-block';
-		
+
+		var reader = new FileReader();
+		var preview = document.createElement('img');
+
+		preview.style.height = '40px';
+		preview.style.width = '40px';
+		preview.style.verticalAlign = 'middle';
+		preview.style.marginRight = '10px';
+
+		reader.addEventListener('load', function () {
 				
-		list.innerHTML = file.name;
+			preview.src = this.result;
+
+		}, false);
+
+		if(file)
+		    reader.readAsDataURL(file);		
+		else
+			preview.src = "";
+	
+		console.log(preview);
+
+		var fileName = document.createElement('span');
+		fileName.innerHTML = file.name;
+
+		list.appendChild(preview);		
+		list.appendChild(fileName);
 		list.appendChild(uploadButton);
 		list.appendChild(removeButton);
 
@@ -233,12 +266,16 @@
 		
 		event.preventDefault();
 
-		if(event.type == "dragover")
-			dropBox.style.border = '2px dotted #000000';
-		else if(event.type == "dragleave")
+		if(event.type == "dragover") {
+
+			dropBox.style.border = '2px dotted #000000'
+			dropBoxTitle.style.color = '#000000';
+		
+		} else if(event.type == "dragleave") {
+
 			dropBox.style.border = '1px dotted #a6a6a6';
-		
-		
+			dropBoxTitle.style.color = '#a6a6a6';
+		}
 	}
 
 	// This function processes the files
