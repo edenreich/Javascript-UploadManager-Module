@@ -13,15 +13,15 @@
 
 	var settings = {};
 	
-	var	dropBox = {};	
+	var dropBox = {};	
 	
 	var dropBoxTitle = {};
 
-	var	uploadListItems = [];
+	var uploadListItems = [];
 	
-	var	fileInput = {};
+	var fileInput = {};
 	
-	var	chooseButton = {};
+	var chooseButton = {};
 	
 	var container = {};
 
