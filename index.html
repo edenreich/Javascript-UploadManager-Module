@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Upload Manager with JS</title>
+	<script type="text/javascript" src="UploadManager.plugin.js"></script>
+</head>
+<body>
+<br>
+<div class="upload" style="width: 800px;margin: 0 auto;">
+	
+</div>
+
+<script type="text/javascript">
+
+	var UploadManager = new UploadManager({
+		dragAndDrop: true,
+		buttonOnThe: 'right',
+		dropBoxTitle: 'Please drop your files here..',
+
+	});
+
+	UploadManager.attachTo('.upload');
+
+</script>
+</body>
+</html>
