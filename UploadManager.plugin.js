@@ -25,12 +25,9 @@
 	
 	var container = {};
 
-	// The constructor
-	this.UploadManager = function() {
+	var styleTags = {};
 
-		this.timeOut = null;
-
-		var defaults = {
+	var defaults = {
 			dragAndDrop: false,
 			dropBoxTitle: 'Drag Images Here..',
 			containerWidth: 'auto',
@@ -41,8 +38,16 @@
 			buttonInnerText: 'Choose',
 			URL: 'Upload.php',
 			autoStart: false,
-			callbackAjaxResponse: function(response) {},
+			done: function(response) {},
+			animateProgressBar: false,
+			progressBarColor: '#337ab7',
+			showPrecentage: true,
 		}
+
+	// The constructor
+	this.UploadManager = function() {
+
+		this.timeOut = null;
 
 		settings = defaults;
 
@@ -51,8 +56,6 @@
 			settings = extendDefaults(defaults, arguments[0]);	
 		}
 	}
-
-	
 
 	// This method create the upload manager and attach it to the selected element
 	UploadManager.prototype.attachTo = function(div) {
@@ -98,7 +101,6 @@
 		
 		dropBox.ondragover = changeDropBoxStyle;
 		dropBox.ondragleave = changeDropBoxStyle;
-		
 
 		return dropBox;
 	}
@@ -150,6 +152,43 @@
 			button.style.float = options.buttonOnThe;
 
 		return button;
+	}
+
+
+	function createProgressBar(animate) {
+
+		importBootstrapProgressBarStyleTags();
+
+		switch(animate) {
+
+			case true:
+
+				var progressBar = document.createElement('div');
+				var div = document.createElement('div');
+
+				progressBar.appendChild(div);
+
+				progressBar.className = 'progress';
+				div.className = 'progress-bar progress-bar-striped active';
+
+				break;
+
+			default:
+			case false:
+
+				var progressBar = document.createElement('div');
+				var div = document.createElement('div');
+
+				progressBar.appendChild(div);
+
+				progressBar.className = 'progress';
+				div.className = 'progress-bar progress-bar-striped';
+
+				break;
+		}
+		
+
+		return progressBar;
 	}
 
 	// List the files to be uploaded
@@ -319,16 +358,10 @@
 			var uploadListItem = node;
 			var file = event;
 		} 
-			
 		
-		var progressBar = document.createElement('progress');
+		var progressBar = createProgressBar(settings.animateProgressBar);
 		var ajax = getXMLHttpRequestObject();
 		var fd = new FormData();
-
-		progressBar.value = '0';
-		progressBar.style.width = '100%';
-		progressBar.style.height = '100%';
-		progressBar.max = '100';
 		
 		fd.append('file', file);
 
@@ -350,13 +383,18 @@
 
 	// This function update the file upload progressbar
 	function updateProgressBar(event) {
-
+		
 		if(event.lengthComputable) {
 		 	
 			var percentComplete = Math.ceil((event.loaded / event.total) * 100);
 
-			if(percentComplete < 98)
-		    	this.progressBar.value = percentComplete;
+			if(percentComplete < 98) {
+			
+				this.progressBar.childNodes[0].style.width = percentComplete + '%';
+				
+				if(settings.showPrecentage)
+					this.progressBar.childNodes[0].innerHTML = percentComplete + '%';
+			}
 		   
 		  } else {
 		    
@@ -373,15 +411,20 @@
 
 		if(ajax.readyState == 4 && ajax.status == 200) {
 		
-			for(var i = 95; i <= 100 ; i++)
-				ajax.progressBar.value = i;
+			for(var i = 95; i <= 100 ; i++) {
+				
+				ajax.progressBar.childNodes[0].style.width = i + '%';
+				
+				if(settings.showPrecentage)
+					ajax.progressBar.childNodes[0].innerHTML = i + '%';
+			}
 			
 			setTimeout(function() {
 				ajax.uploadListItem.remove();
 				uploadListItems.pop(ajax.uploadListItem);
 			}, 1000);
 
-			settings.callbackAjaxResponse.call(this, this.response);
+			settings.done.call(this, this.response);
 		}
 	}
 
@@ -442,6 +485,87 @@
 		}
 
 		return source;
+	}
+
+
+	function progressBarStyleTagAlreadyImported() {
+
+		var stylesheets = document.styleSheets;
+
+		for(var i = 0; i < stylesheets.length ; i++) {
+			var rules = stylesheets[i].rules || stylesheets[i].cssRules;
+			for(var rule in rules) {
+				if(rules[rule].selectorText == '.progress')
+					return true;
+			}
+		}
+	}
+
+	// This function imports only what we need for this pretty progressbar
+	function importBootstrapProgressBarStyleTags() {
+
+		if(progressBarStyleTagAlreadyImported())
+			return;
+
+		styleTags = document.createElement('style');
+
+		var style = '';
+
+		style += '.progress {';
+		style += 'height: 40px;';
+		style += 'line-height: 35px;';
+		style += 'margin-bottom: 20px;';
+		style += 'overflow: hidden;';
+		style += 'background-color: #f5f5f5;';
+		style += 'border-radius: 4px;';
+		style += '-webkit-box-shadow: inset 0 1px 2px rgba(0,0,0,.1);';
+		style += 'box-shadow: inset 0 1px 2px rgba(0,0,0,.1);';		
+		style += '}';
+
+		style += '.progress-bar {';
+		style += 'float: left;';
+		style += 'height: 100%;';
+		style += 'font-size: 1.2em;';
+		style += 'color: #fff;';
+		style += 'text-align: center;';
+		style += 'background-color:' + settings.progressBarColor +';';
+		style += '-webkit-box-shadow: inset 0 -1px 0 rgba(0,0,0,.15);';
+		style += 'box-shadow: inset 0 -1px 0 rgba(0,0,0,.15);';
+		style += 'transition: width .4s ease;';
+		style += '}';
+
+		style += '.progress-bar-striped, .progress-striped .progress-bar {';
+		style += 'background-image: -webkit-linear-gradient(45deg,rgba(255,255,255,.15) 25%,transparent 25%,transparent 50%,rgba(255,255,255,.15) 50%,rgba(255,255,255,.15) 75%,transparent 75%,transparent);';
+		style += 'background-image: -o-linear-gradient(45deg,rgba(255,255,255,.15) 25%,transparent 25%,transparent 50%,rgba(255,255,255,.15) 50%,rgba(255,255,255,.15) 75%,transparent 75%,transparent);';
+		style += 'background-image: linear-gradient(45deg,rgba(255,255,255,.15) 25%,transparent 25%,transparent 50%,rgba(255,255,255,.15) 50%,rgba(255,255,255,.15) 75%,transparent 75%,transparent);';
+		style += '-webkit-background-size: 40px 40px;';
+		style += 'background-size: 40px 40px;';
+		style += '}';
+
+		style += '.progress-bar.active, .progress.active .progress-bar {';
+		style += '-webkit-animation: progress-bar-stripes 2s linear infinite;';
+		style += '-o-animation: progress-bar-stripes 2s linear infinite;';
+		style += 'animation: progress-bar-stripes 2s linear infinite;';
+		style += '}'
+
+		style += '@keyframes progress-bar-stripes {';
+		style += '0% {';
+		style += 'background-position: 40px 0;';
+		style += '}';
+		style += '100% {';
+		style += 'background-position: 0 0;';
+		style += '}';
+		style += '}';
+
+		styleTags.innerHTML = style;
+
+		addProgressBarStyleTags(styleTags);
+	}
+
+	// This function adds a style tags to the head tags
+	function addProgressBarStyleTags(styleTags) {
+		
+		document.head.appendChild(styleTags);
 	}
 
 

@@ -6,6 +6,7 @@
 </head>
 <body>
 <br>
+
 <div class="upload" style="width: 800px;margin: 0 auto;">
 	
 </div>
@@ -17,15 +18,22 @@
 		buttonOnThe: 'right',
 		dropBoxTitle: 'Drop your files here...',
 		URL: 'Upload.php',
-		autoStart: true,
-		color: 'green',
-		callbackAjaxResponse: function(response) {
+		autoStart: false,
+		animateProgressBar: true,
+		showPrecentage: true,
+		progressBarColor: '#186680',
+		done: function(response) {
 			console.log(response);
 		}
 
 	});
 
 	UploadManager.attachTo('.upload');
+
+	
+
+
+
 
 </script>
 </body>
