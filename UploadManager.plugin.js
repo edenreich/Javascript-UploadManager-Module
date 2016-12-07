@@ -10,44 +10,51 @@
 
 (function()
 {
-
-	var settings = {};
-	
+	// stores the dropbox element where the users drop their files
 	var dropBox = {};	
 	
+	// stores the dropbox title where it gives feedback to the user what he should do
 	var dropBoxTitle = {};
 
+	// stores the all the items that has been listed and need to be upload ("pre-upload-lists")
 	var uploadListItems = [];
 	
+	// stores an input with the name of file[], and make it multiple
 	var fileInput = {};
 	
+	// stores the button where the user clicks to choose the files
 	var chooseButton = {};
 	
+	// stores the container, which is basicly the element which we attach the upload manager to
 	var container = {};
 
+	// stores the style tag, to add some bootstrap pretty progressbar style later
 	var styleTags = {};
 
+	// stores the settings of the upload manager
+	var settings = {};
+
+	// store the default settings
 	var defaults = {
 			dragAndDrop: false,
 			dropBoxTitle: 'Drag Images Here..',
 			containerWidth: 'auto',
 			containerHeight: 200,
 			attachTo: '.upload',
-			timeOut: 3000,
 			buttonOnThe: 'right',
 			buttonInnerText: 'Choose',
 			URL: 'Upload.php',
 			autoStart: false,
-			done: function(response) {},
+			success: function(response) {},
+			error: function(response) {},
 			animateProgressBar: false,
 			progressBarColor: '#337ab7',
 			showPrecentage: true,
+			allAtOnce: false,
 		}
 
 	// The constructor
 	this.UploadManager = function() {
-
-		this.timeOut = null;
 
 		settings = defaults;
 
@@ -60,24 +67,45 @@
 	// This method create the upload manager and attach it to the selected element
 	UploadManager.prototype.attachTo = function(div) {
 
+		// store the attached element
 		container = document.querySelector(div);
 
+		// add the dropbox if it was requested
 		if(settings.dragAndDrop)
 		{
 			dropBox = createDropBox();
 
 			container.appendChild(dropBox);
-			dropBox.ondrop = listFiles;
+			
+			//if the developer decided to upload all at once we will give up on listing
+			if(settings.allAtOnce) {
+
+				dropBox.ondrop = processFiles;
+
+			} else { // otherwise, we will list the files
+
+				dropBox.ondrop = listFiles;
+			}
 		}
 
 		fileInput = createFileInput();
 		chooseButton = createButton(settings);
 		
-		chooseButton.onclick = openFilesDialogBox;
-		fileInput.onchange = listFiles;
+		//if the developer decided to upload all at once we will give up on listing
+		if(settings.allAtOnce) {
 
+			fileInput.onchange = processFiles;
+
+		} else { // otherwise, we will list the files
+
+			fileInput.onchange = listFiles;
+		}
+
+		chooseButton.onclick = openFilesDialogBox;
+		
 		container.appendChild(fileInput);
 		container.appendChild(chooseButton);
+
 	}
 
 	// This method creates the drag and drop box
@@ -154,7 +182,7 @@
 		return button;
 	}
 
-
+	// creates the progress bar element, pass animate as true if animate has been asked
 	function createProgressBar(animate) {
 
 		importBootstrapProgressBarStyleTags();
@@ -186,25 +214,52 @@
 
 				break;
 		}
-		
-
+	
 		return progressBar;
+	}
+
+	function createListElement() {
+
+		var list = document.createElement('li');
+
+		list.style.width = '98%';
+		list.style.height = '40px';
+		list.style.lineHeight = '35px';
+		list.style.padding = '6px 6px';
+		list.style.border = '1px solid #a6a6a6';
+		list.style.listStyleType = 'none';
+		list.style.marginTop = '5px';
+		list.style.display = 'inline-block';
+
+		return list;
+	}
+
+	function addHighlight() {
+
+		dropBox.style.border = '2px dotted #000000';
+		dropBoxTitle.style.color = '#000000';
+	}
+
+	// simply removes the highlist of the dropbox as soon as the drop the files
+	function removeHighlight() {
+
+		dropBox.style.border = '2px dotted #a6a6a6';
+		dropBoxTitle.style.color = '#a6a6a6';
 	}
 
 	// List the files to be uploaded
 	function listFiles(files) {
 
 		event.preventDefault();
+		// removeHighlight();
 
 		if(event.type == 'change') {
 
-			files = event.target.files;
+			var files = event.target.files;
 		}
 		else if(event.type == 'drop') {
 
-			dropBox.style.border = '2px dotted #a6a6a6';
-			dropBoxTitle.style.color = '#a6a6a6';
-			files = event.dataTransfer.files;
+			var files = event.dataTransfer.files;
 		}
 
 		for(var i = 0; i < files.length ; i++) {
@@ -222,15 +277,13 @@
 				processFile(files[i], uploadListItems[i]);
 		}
 
-
-		
 		return false;
 	}
 
 	// This function wrap the file inside a list item
 	function listFile(file) {
 		
-		var list = document.createElement('li');
+		var list = createListElement();
 
 		var removeButton = createButton({
 								color: '#d9534f', 
@@ -244,15 +297,6 @@
 								buttonInnerText: 'Upload',
 								buttonOnThe: 'right',
 							});
-
-		list.style.width = '98%';
-		list.style.height = '40px';
-		list.style.lineHeight = '35px';
-		list.style.padding = '6px 6px';
-		list.style.border = '1px solid #a6a6a6';
-		list.style.listStyleType = 'none';
-		list.style.marginTop = '5px';
-		list.style.display = 'inline-block';
 
 		var reader = new FileReader();
 		var preview = document.createElement('img');
@@ -301,48 +345,61 @@
 
 		if(event.type == "dragover") {
 
-			dropBox.style.border = '2px dotted #000000'
-			dropBoxTitle.style.color = '#000000';
+			addHighlight();
 		
 		} else if(event.type == "dragleave") {
 
-			dropBox.style.border = '2px dotted #a6a6a6';
-			dropBoxTitle.style.color = '#a6a6a6';
+			removeHighlight();
 		}
+
+		return false;
 	}
 
 	// This function processes the files
 	function processFiles(event) {
 
-		var files = event.target.files;
+		event.preventDefault();
+		removeHighlight();
+
+		if(event.type == 'change') {
+
+			var files = event.target.files;
+		}
+		else if(event.type == 'drop') {
+
+			var files = event.dataTransfer.files;
+		}
+
+		var progressBar = createProgressBar(settings.animateProgressBar);
+		var ajax = getXMLHttpRequestObject();
+		var fd = new FormData();
+		var cache = false;
+		var uploadListItem = createListElement();
+
+		if(!cache)
+		{
+			fd.append('_', new Date().getTime());
+		}
+
+		for(var i = 0 ; i < files.length ; i++) {
+
+			fd.append('file[]', files[i]);
+		}
 		
-		console.log(files);
-		// var uploadListItem = this.parentNode;
-		// var progressBar = document.createElement('progress');
-		// var ajax = getXMLHttpRequestObject();
-		// var fd = new FormData();
 
-		// progressBar.value = '0';
-		// progressBar.style.width = '100%';
-		// progressBar.style.height = '100%';
-		// progressBar.max = '100';
+		uploadListItem.appendChild(progressBar);
+		container.append(uploadListItem);
+
+		ajax.upload.onprogress = updateProgressBar;
+		ajax.upload.progressBar = progressBar;
+
+		ajax.open('post', settings.URL);
 		
-		// fd.append('file', file);
+		ajax.onreadystatechange = getAjaxResponse;
+		ajax.progressBar = progressBar;
+		ajax.uploadListItem = uploadListItem;
 
-		// empty(uploadListItem);
-
-		// uploadListItem.append(progressBar);
-
-		// ajax.upload.onprogress = updateProgressBar;
-		// ajax.upload.progressBar = progressBar;
-
-		// ajax.open('post', settings.URL);
-		
-		// ajax.onreadystatechange = getAjaxResponse;
-		// ajax.progressBar = progressBar;
-		// ajax.uploadListItem = uploadListItem;
-
-		// ajax.send(fd);
+		ajax.send(fd);
 	}
 
 	// This function processes the files
@@ -362,7 +419,13 @@
 		var progressBar = createProgressBar(settings.animateProgressBar);
 		var ajax = getXMLHttpRequestObject();
 		var fd = new FormData();
-		
+		var cache = false;
+
+		if(!cache)
+		{
+			fd.append('_', new Date().getTime());
+		}
+
 		fd.append('file', file);
 
 		empty(uploadListItem);
@@ -373,8 +436,10 @@
 		ajax.upload.progressBar = progressBar;
 
 		ajax.open('post', settings.URL);
+		ajax.setRequestHeader("Content-Type", "multipart/form-data");
 		
 		ajax.onreadystatechange = getAjaxResponse;
+		
 		ajax.progressBar = progressBar;
 		ajax.uploadListItem = uploadListItem;
 
@@ -408,23 +473,32 @@
 	function getAjaxResponse() {
 
 		var ajax = this;
-
-		if(ajax.readyState == 4 && ajax.status == 200) {
+		var status = ajax.status;
 		
-			for(var i = 95; i <= 100 ; i++) {
-				
-				ajax.progressBar.childNodes[0].style.width = i + '%';
-				
-				if(settings.showPrecentage)
-					ajax.progressBar.childNodes[0].innerHTML = i + '%';
-			}
-			
-			setTimeout(function() {
-				ajax.uploadListItem.remove();
-				uploadListItems.pop(ajax.uploadListItem);
-			}, 1000);
+		if(ajax.readyState === 4) {
+			console.log(ajax.getAllResponseHeaders());
+			if((status >= 200 && status < 300) || status === 304)
+			{
+					for(var i = 95; i <= 100 ; i++) {
+						
+						ajax.progressBar.childNodes[0].style.width = i + '%';
+						
+						if(settings.showPrecentage)
+							ajax.progressBar.childNodes[0].innerHTML = i + '%';
+					}
+					
+					setTimeout(function() {
+						ajax.uploadListItem.remove();
+						uploadListItems.pop(ajax.uploadListItem);
+					}, 1000);
 
-			settings.done.call(this, this.response);
+					return settings.success.call(this, this.response);
+
+			} else { 
+
+				throw new Error('error occured: ' + status);
+				return settings.error.call(this, this.response);
+			}
 		}
 	}
 
@@ -567,6 +641,5 @@
 		
 		document.head.appendChild(styleTags);
 	}
-
 
 }());

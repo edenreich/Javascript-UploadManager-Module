@@ -1,6 +1,8 @@
 <?php
 
-echo 'successfuly uploaded ' . $_FILES['file']['name'];
+header('Content-Type: multipart/form-data');
+
+echo 'successfuly uploaded ' . print_r($_FILES['file']);
 
 sleep(1);
 

@@ -22,9 +22,15 @@
 		animateProgressBar: true,
 		showPrecentage: true,
 		progressBarColor: '#186680',
-		done: function(response) {
+		success: function(response) {
+			
 			console.log(response);
-		}
+		},
+		error: function(response) {
+
+			// console.log(response);
+		},
+		allAtOnce: true,
 
 	});
 
