@@ -1,40 +1,58 @@
 
 /*
 |--------------------------------------------------------------------------
-| UploadManager Plugin JS
+| UploadManager Module JS
 |--------------------------------------------------------------------------
-| This plugin creates an Upload Manager
+| This Javascript Module creates an Upload Manager
 | 
-|
+| 
 */
 
 (function()
 {
-	// stores the dropbox element where the users drop their files
+	/**
+	 * stores the dropbox element where the users drop their files.
+	 */
 	var dropBox = {};	
 	
-	// stores the dropbox title where it gives feedback to the user what he should do
+	/**
+	 * stores the dropbox inside text.
+	 */
 	var dropBoxTitle = {};
 
-	// stores the all the items that has been listed and need to be upload ("pre-upload-lists")
+	/**
+	 * stores the all the items that has been listed and need to be upload ("pre-upload-lists").
+	 */
 	var uploadListItems = [];
 	
-	// stores an input with the name of file[], and make it multiple
+	/**
+	 * stores an input with the name of file[], and make it multiple.
+	 */
 	var fileInput = {};
 	
-	// stores the button where the user clicks to choose the files
+	/**
+	 * stores the button where the user clicks to choose the files.
+	 */
 	var chooseButton = {};
 	
-	// stores the container, which is basicly the element which we attach the upload manager to
+	/**
+	 * stores the container - is basicly the element which we attach the upload manager to.
+	 */
 	var container = {};
 
-	// stores the style tag, to add some bootstrap pretty progressbar style later
+	/**
+	 * stores the style tag, to add some bootstrap pretty progressbar style later.
+	 */
 	var styleTags = {};
 
-	// stores the settings of the upload manager
+	/**
+	 * stores the settings of the upload manager.
+	 */
 	var settings = {};
 
-	// store the default settings
+	/**
+	 * store the default settings.
+	 */
 	var defaults = {
 			dragAndDrop: false,
 			dropBoxTitle: 'Drag Images Here..',
@@ -53,7 +71,11 @@
 			allAtOnce: false,
 		}
 
-	// The constructor
+	/**
+	 * The constructor:
+	 * - checks if the developer passed an object as the settings.
+	 * - extending the default settings and override them.
+	 */
 	this.UploadManager = function() {
 
 		settings = defaults;
@@ -64,7 +86,9 @@
 		}
 	}
 
-	// This method create the upload manager and attach it to the selected element
+	/**
+	 * This method create the upload manager and attach it to the selected element.
+	 */
 	UploadManager.prototype.attachTo = function(div) {
 
 		// store the attached element
@@ -108,7 +132,9 @@
 
 	}
 
-	// This method creates the drag and drop box
+	/**
+	 * This method creates the drag and drop box.
+	 */
 	function createDropBox() {
 
 		dropBox = document.createElement('div');
@@ -133,7 +159,9 @@
 		return dropBox;
 	}
 
-	// This function creates the input invisible for the files
+	/**
+	 * This function creates the input invisible for the files.
+	 */
 	function createFileInput() {
 
 		var input = document.createElement('input');
@@ -147,7 +175,9 @@
 		return input;
 	}
 
-	// This function creates the upload button
+	/**
+	 * This function creates the upload button.
+	 */
 	function createButton(options) {
 		
 		var button = document.createElement('button');
@@ -182,7 +212,9 @@
 		return button;
 	}
 
-	// creates the progress bar element, pass animate as true if animate has been asked
+	/**
+	 * creates the progress bar element, pass animate as true if animate has been set.
+	 */
 	function createProgressBar(animate) {
 
 		importBootstrapProgressBarStyleTags();
@@ -218,6 +250,9 @@
 		return progressBar;
 	}
 
+	/**
+	 * Creates a list item for the being uploaded image.
+	 */
 	function createListElement() {
 
 		var list = document.createElement('li');
@@ -234,24 +269,30 @@
 		return list;
 	}
 
+	/**
+	 * Changes the look of the frame, normally as the user drag something over.
+	 */
 	function addHighlight() {
 
 		dropBox.style.border = '2px dotted #000000';
 		dropBoxTitle.style.color = '#000000';
 	}
 
-	// simply removes the highlist of the dropbox as soon as the drop the files
+	/**
+	 * simply removes the highlist of the dropbox as the files is being dropped.
+	 */
 	function removeHighlight() {
 
 		dropBox.style.border = '2px dotted #a6a6a6';
 		dropBoxTitle.style.color = '#a6a6a6';
 	}
 
-	// List the files to be uploaded
+	/**
+	 * List the files to be uploaded.
+	 */
 	function listFiles(files) {
 
 		event.preventDefault();
-		// removeHighlight();
 
 		if(event.type == 'change') {
 
@@ -280,7 +321,9 @@
 		return false;
 	}
 
-	// This function wrap the file inside a list item
+	/**
+	 * This function wrap the file inside a list item.
+	 */
 	function listFile(file) {
 		
 		var list = createListElement();
@@ -338,7 +381,9 @@
 
 	// Event Listeners
 
-	// This function changes the color of the drop box
+	/**
+	 * This function changes the color of the drop box.
+	 */
 	function changeDropBoxStyle(event) {
 		
 		event.preventDefault();
@@ -355,7 +400,9 @@
 		return false;
 	}
 
-	// This function processes the files
+	/**
+	 * This function processes the files.
+	 */
 	function processFiles(event) {
 
 		event.preventDefault();
@@ -402,7 +449,9 @@
 		ajax.send(fd);
 	}
 
-	// This function processes the files
+	/**
+	 * This function processes the files.
+	 */
 	function processFile(event, node) {
 
 		if(event.type == 'click') {
@@ -446,7 +495,9 @@
 		ajax.send(fd);
 	}
 
-	// This function update the file upload progressbar
+	/**
+	 * This function update the file upload progressbar.
+	 */
 	function updateProgressBar(event) {
 		
 		if(event.lengthComputable) {
@@ -462,21 +513,21 @@
 			}
 		   
 		  } else {
-		    
-		    throw new Error('Unable to get the progress of the file. Filesize is unknown.')
-		  
+		  	throw new Error('Unable to get the progress of the file. Filesize is unknown.');
 		  }
 
 	}
 
-	// This function handles the response from the server side script
+	/**
+	 * This function handles the response from the server side script.
+	 */
 	function getAjaxResponse() {
 
 		var ajax = this;
 		var status = ajax.status;
 		
 		if(ajax.readyState === 4) {
-			console.log(ajax.getAllResponseHeaders());
+			
 			if((status >= 200 && status < 300) || status === 304)
 			{
 					for(var i = 95; i <= 100 ; i++) {
@@ -495,20 +546,24 @@
 					return settings.success.call(this, this.response);
 
 			} else { 
-
+				console.log(1);
 				throw new Error('error occured: ' + status);
 				return settings.error.call(this, this.response);
 			}
 		}
 	}
 
-	// This function opens the files dialog box
+	/**
+	 * This function opens the files dialog box.
+	 */
 	function openFilesDialogBox() {
 
 		document.getElementById('fileInput').click();
 	}
 
-	// This function depends on the browser type returns the XMLHttpRequest object.
+	/**
+	 * Depends on the browser an XHR object will be returned.
+	 */
 	function getXMLHttpRequestObject() {
 
 	    if (window.XMLHttpRequest) {
@@ -528,16 +583,20 @@
 	}
 
 
-	// helper functions
+	// Helper functions
 
-	// remove an item from the upload items
+	/**
+	 * remove an item from the upload items.
+	 */
 	function removeItem() {
 
 		this.parentNode.remove();
 		uploadListItems.pop(this);
 	}
 
-	// This function is just for removing all child nodes.
+	/**
+	 * This function is just for removing all child nodes.
+	 */
 	function empty(node) {
 		
 		while(node.hasChildNodes()) {
@@ -546,7 +605,9 @@
 		}
 	}
 
-	// Extending the default object by letting the object to be overrided if the properties exists.
+	/**
+	 * Overrides the properties of the origin object.
+	 */
 	function extendDefaults(source, properties) {
 
 		var property;
@@ -561,7 +622,9 @@
 		return source;
 	}
 
-
+	/**
+	 * Checks if the progressbar style tag has already been imported.
+	 */
 	function progressBarStyleTagAlreadyImported() {
 
 		var stylesheets = document.styleSheets;
@@ -575,7 +638,9 @@
 		}
 	}
 
-	// This function imports only what we need for this pretty progressbar
+	/**
+	 * This function imports only what we need for this pretty progressbar.
+	 */
 	function importBootstrapProgressBarStyleTags() {
 
 		if(progressBarStyleTagAlreadyImported())
@@ -636,7 +701,9 @@
 		addProgressBarStyleTags(styleTags);
 	}
 
-	// This function adds a style tags to the head tags
+	/**
+	 * This function adds a style tags to the head tags.
+	 */
 	function addProgressBarStyleTags(styleTags) {
 		
 		document.head.appendChild(styleTags);
