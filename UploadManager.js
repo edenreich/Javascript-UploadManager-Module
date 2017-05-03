@@ -51,7 +51,7 @@ var UploadManager = function()
 	/**
 	 * determine wether the mouse dragged something over the box.
 	 */
-	var isOverDropBox = false;
+	var isDraggedOver = false;
 
 	/**
 	 * cloud icon to appear as the user drag something over the box.
@@ -78,7 +78,8 @@ var UploadManager = function()
 			showPrecentage: true,
 			allAtOnce: false,
 			cloudColor: '#006DF0',
-			titleFontFamily: 'arial'
+			titleFontFamily: 'arial',
+			dropBoxOnOverTitle: 'Drop it..'
 		};
 	
 	/**
@@ -136,13 +137,38 @@ var UploadManager = function()
 	function createDropBox() {
 		dropBox = document.createElement('div');
 		dropBox.className = 'drop-box';
-		
 
-		dropBoxTitle = document.createElement('span');
-		dropBoxTitle.className = 'drop-box-title';
+		var svgDropBoxFrame = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+
+		svgDropBoxFrame.setAttributeNS(null, 'width', '100%');
+		svgDropBoxFrame.setAttributeNS(null, 'height', '100%');
+		svgDropBoxFrame.setAttributeNS(null, 'preserveAspectRatio', 'none');
+
+		var svgGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+		var svgRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+		dropBoxTitle = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+
+		svgRect.setAttributeNS(null, 'x', '0');
+		svgRect.setAttributeNS(null, 'y', '0');
+		svgRect.setAttributeNS(null, 'width', '100%');
+		svgRect.setAttributeNS(null, 'height', '100%');
+		svgRect.setAttributeNS(null, 'fill', 'none');
+		svgRect.setAttributeNS(null, 'stroke', '#000000');
+		svgRect.setAttributeNS(null, 'stroke-width', '5');
+		svgRect.setAttributeNS(null, 'stroke-dasharray', '50 50');
+
+		dropBoxTitle.setAttributeNS(null, 'x', '50%');
+		dropBoxTitle.setAttributeNS(null, 'y', '50%');
+		dropBoxTitle.setAttributeNS(null, 'text-anchor', 'middle');
+		dropBoxTitle.setAttributeNS(null, 'font-size', '35');
+
+		svgGroup.appendChild(svgRect);
+		svgGroup.appendChild(dropBoxTitle);
+		svgDropBoxFrame.appendChild(svgGroup);
+
+		dropBox.appendChild(svgDropBoxFrame);
+
 		dropBoxTitle.innerHTML = settings.dropBoxTitle;
-
-		dropBox.appendChild(dropBoxTitle);
 		
 		dropBox.ondragover = changeDropBoxStyle;
 		dropBox.ondragleave = changeDropBoxStyle;
@@ -200,7 +226,6 @@ var UploadManager = function()
 		switch(animate) {
 
 			case true:
-
 				var progressBar = document.createElement('div');
 				var div = document.createElement('div');
 
@@ -213,7 +238,6 @@ var UploadManager = function()
 
 			default:
 			case false:
-
 				var progressBar = document.createElement('div');
 				var div = document.createElement('div');
 
@@ -242,24 +266,28 @@ var UploadManager = function()
 	 * Changes the look of the frame, normally as the user drag something over.
 	 */
 	function addHighlight() {
-		if(isOverDropBox) {
+		if(isDraggedOver) {
 			return;
 		}
 
-		isOverDropBox = true;
+		isDraggedOver = true;
+		dropBoxTitle.innerHTML = settings.dropBoxOnOverTitle;
 		appendSVGUploadCloudIcon();
-		dropBox.style.border = '2px dotted #000000';
-		dropBoxTitle.style.color = '#000000';
+		addClass(dropBox, 'item-is-dragged-over');
 	}
 
 	/**
 	 * simply removes the highlist of the dropbox as the files is being dropped.
 	 */
 	function removeHighlight() {
-		isOverDropBox = false;
+		if(! isDraggedOver) {
+			return;
+		}
+
+		isDraggedOver = false;
+		dropBoxTitle.innerHTML = settings.dropBoxTitle;
 		removeSVGUploadCloudIcon();
-		dropBox.style.border = '2px dotted #a6a6a6';
-		dropBoxTitle.style.color = '#a6a6a6';
+		removeClass(dropBox, 'item-is-dragged-over');
 	}
 
 	/**
@@ -497,7 +525,7 @@ var UploadManager = function()
 					return settings.success.call(this, this.response);
 
 			} else { 
-				console.log(1);
+				
 				throw new Error('error occured: ' + status);
 				return settings.error.call(this, this.response);
 			}
@@ -593,21 +621,37 @@ var UploadManager = function()
 		var CSS = `
 
 			.drop-box {
+				position: relative;
 				font-family: ${settings.titleFontFamily};
 				width: ${settings.containerWidth}px;
 				height: ${settings.containerHeight}px;
-				border: 2px dotted #a6a6a6;
+				border: 0;
 				text-align: center;
 				margin: 0 auto;
 			}
 
-			.drop-box > .drop-box-title {
-				line-height: ${settings.containerHeight}px;
+			.drop-box.item-is-dragged-over > .drop-box-title {
+				color: #000000;
+			}
+
+			.drop-box.item-is-dragged-over > svg {
+				z-index: 3;
+			}
+
+			.drop-box.item-is-dragged-over > svg > g > rect {
+				
+  				animation: dash 5s linear;
+  				animation-iteration-count: infinite;
+			}
+
+			.drop-box > svg > g > text {
 				font-size: 1.6em;
-				color: #a6a6a6;
+				fill: #a6a6a6;
 			}
 
 			.drop-box > .upload-cloud {
+				z-index: 0;
+				opacity: 0.7;
 				position: relative;
 				display: block;
 				margin: -60px auto;
@@ -691,6 +735,14 @@ var UploadManager = function()
 				margin-right: 10px;
 			}
 
+			@-webkit-keyframes bump {
+				0% {
+					transform: translateY(0px);
+				} 100% {
+					transform: translateY(10px);
+				}
+			}
+
 			@keyframes bump {
 				0% {
 					transform: translateY(0px);
@@ -698,7 +750,12 @@ var UploadManager = function()
 					transform: translateY(10px);
 				}
 			}
-			
+
+			@keyframes dash {
+			  to {
+			    stroke-dashoffset: 500;
+			  }
+			}
 		`;
 
 		CSS = minify_css(CSS);
@@ -825,6 +882,22 @@ var UploadManager = function()
 	    string = string.replace(/ !/g, '!');
 	    
 	    return string;
+	}
+
+	function addClass(element, className) {
+		if(hasClass(element, className)) return;
+
+		element.className = element.className + ' ' + className;
+	}
+
+	function removeClass(element, className) {
+		if(! hasClass(element, className)) return;
+		console.log(className);
+		element.className = element.className.replace(new RegExp('(?:^|\\s)'+ className + '(?:\\s|$)'), '');
+	}
+
+	function hasClass(element, className) {
+		return (' ' + element.className + ' ').indexOf(' ' + className + ' ') > -1;
 	}
 
 	return {

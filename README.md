@@ -1,4 +1,4 @@
-<p align="center"><img src="https://s30.postimg.org/3x42fl5g1/Upload_Manager.jpg"></p>
+<p align="center"><img src="https://s18.postimg.org/dm87e3zzd/Upload_Manager.jpg"></p>
 
 # Javascript-UploadManager-Module
 A Module to handle multiple files upload on the Client-Side, to handle it on the Server-Side you could use Upload.class.php
@@ -19,18 +19,17 @@ uploadManager.settings({
 		dragAndDrop: true,
 		buttonOnThe: 'left',
 		dropBoxTitle: 'Drop your files here...',
+		dropBoxOnOverTitle: 'Drop it...',
 		URL: 'Upload.php',
 		autoStart: false,
 		animateProgressBar: true,
 		showPrecentage: true,
 		progressBarColor: '#186680',
 		success: function(response) {
-			
-			console.log(response);
+			// ajax response from server-side script of each file when succeed
 		},
 		error: function(response) {
-
-			// console.log(response);
+			// ajax response from server-side script of each file when failed
 		},
 		allAtOnce: false,
 		titleFontFamily: 'arial',
