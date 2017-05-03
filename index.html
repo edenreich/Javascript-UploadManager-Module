@@ -2,7 +2,7 @@
 <html>
 <head>
 	<title>Upload Manager with JS</title>
-	<script type="text/javascript" src="UploadManager.plugin.js"></script>
+	<script type="text/javascript" src="UploadManager.js"></script>
 </head>
 <body>
 <br>
@@ -13,9 +13,12 @@
 
 <script type="text/javascript">
 
-	var UploadManager = new UploadManager({
+	var UploadManager = new UploadManager;
+
+	UploadManager.settings({
+		bindTo: '.upload',
 		dragAndDrop: true,
-		buttonOnThe: 'right',
+		buttonOnThe: 'left',
 		dropBoxTitle: 'Drop your files here...',
 		URL: 'Upload.php',
 		autoStart: false,
@@ -31,15 +34,8 @@
 			// console.log(response);
 		},
 		allAtOnce: false,
-
+		titleFontFamily: 'arial',
 	});
-
-	UploadManager.attachTo('.upload');
-
-	
-
-
-
 
 </script>
 </body>
